@@ -6,6 +6,7 @@
 package exemplos;
 
 import protocols.RunProtocol;
+import protocols.SecureSuite;
 import java.net.Socket;
 
 /**
@@ -25,13 +26,13 @@ public class ClientExemplo {
         int origem = 43563;
         int destino = 43563;
         
-        /* ALGORITMO: AES128 - CÓDIGO 0 */
+        /* ALGORITMO: AES128 - Cï¿½DIGO 0 */
     	byte algoritmo = 0;
     	
-    	/* PADDING: NO PADDING - CÓDIGO 0 */
+    	/* PADDING: NO PADDING - Cï¿½DIGO 0 */
     	byte padding = 0;
     	
-    	/* MODO: CFB128 - CÓDIGO 5 */
+    	/* MODO: CFB128 - Cï¿½DIGO 5 */
     	int modo = 5;
         
     	try {
@@ -39,7 +40,7 @@ public class ClientExemplo {
             run = new RunProtocol(sk);
             // Define mensagem e valor inicial
             // limitado ao valor 124 (pois valor maximo positivo de 1 byte
-            // com sinal é 127 (124+3)
+            // com sinal ï¿½ 127 (124+3)
             smss.setMensagem("Teste simples de mensagem...");
             smss.setValor(17);
             
@@ -49,7 +50,7 @@ public class ClientExemplo {
             smss.setModo(modo);
             
             System.out.println("Executando protocolo ...");
-            // Chama o método que roda o protocolo do tipo ProtocolModel
+            // Chama o mÃ©todo que roda o protocolo do tipo ProtocolModel
             run.runProtocol(smss);
             if (smss.errorStatus()){
                 System.out.println("CODIGO DE ERRO: " + smss.getErrorCode() + "\n");

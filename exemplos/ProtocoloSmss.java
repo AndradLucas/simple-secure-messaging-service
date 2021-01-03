@@ -6,6 +6,21 @@
 package exemplos;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import protocols.ProtocolModel;
 import util.Util;
@@ -15,16 +30,20 @@ import util.Util;
  * Cliente envia byte de valor X
  * Servidor retorna byte de valor X+1
  * Cliente envia byte de valor (X+2)+tamanho da mensagem(1 bytes)+mensagem de texto
- * Servidor retorna byte de valor (X+3)+1 byte de código de erro (ou zero se sucesso)
- * Código de erro: 1 para erro no indice X+i e 2 para erro na mensagem ou tamanho
+ * Servidor retorna byte de valor (X+3)+1 byte de cï¿½digo de erro (ou zero se sucesso)
+ * Cï¿½digo de erro: 1 para erro no indice X+i e 2 para erro na mensagem ou tamanho
  * @author yeda
  */
 public class ProtocoloSmss extends ProtocolModel {
     private int valor = 0;
+    private int errorCode = 0;
     private boolean errorMsg = false;
+    private Cipher cipher;
     
     private String texto = "Texto nao obtido ainda";
-    private String initializationArray = "iv nao iniciado ainda";
+    //private String initializationArray = "iv nao iniciado ainda";
+    private byte[] initializationArray;
+    private byte[] secretKey;
 	private String textoCriptografado = "Texto criptografado nao obtido ainda";
 
     /* dados do protocolo smss: */
@@ -39,7 +58,7 @@ public class ProtocoloSmss extends ProtocolModel {
     
     
     /**
-     * Servidor e cliente no modo padrão.
+     * Servidor e cliente no modo padrï¿½o.
      * 
      * @param mode
      */
@@ -50,13 +69,13 @@ public class ProtocoloSmss extends ProtocolModel {
     }
     
     /**
-    * Este método deve retornar as mensagens exatamente como especificado
+    * Este mï¿½todo deve retornar as mensagens exatamente como especificado
     * pelo protocolo. 
     * Cliente gera as mensagens: 0 e 2
     * Servidor gera as mensagens: 1 e 3
-    * Todas as mensagens geradas são implementadas nesta classe, nos
-    * respectivos métodos privados gen??Message()
-    * Obs.:Para um protocolo de 4 mensagens este método não precisa ser editado
+    * Todas as mensagens geradas sï¿½o implementadas nesta classe, nos
+    * respectivos mï¿½todos privados gen??Message()
+    * Obs.:Para um protocolo de 4 mensagens este mï¿½todo nï¿½o precisa ser editado
     */
     protected byte[] nextMessage() {
         byte[] msg = null;
@@ -92,13 +111,13 @@ public class ProtocoloSmss extends ProtocolModel {
     }
 
     /**
-    * Este método valida se as mensagens recebidas são exatamente como
+    * Este mï¿½todo valida se as mensagens recebidas sï¿½o exatamente como
     * especificado pelo protocolo. 
     * Cliente valida as mensagens: 1 e 3
     * Servidor valida as mensagens: 0 e 2
-    * Todas as validações de mensagens são implementadas nesta classe, nos
-    * respectivos métodos privados verify??Message()
-    * Obs.:Para um protocolo de 4 mensagens este método não precisa ser editado
+    * Todas as validaï¿½ï¿½es de mensagens sï¿½o implementadas nesta classe, nos
+    * respectivos mï¿½todos privados verify??Message()
+    * Obs.:Para um protocolo de 4 mensagens este mï¿½todo nï¿½o precisa ser editado
     */
     protected boolean verifyMessage(byte[] receivedMsg) {
         boolean ret = false;
@@ -129,10 +148,11 @@ public class ProtocoloSmss extends ProtocolModel {
     }
 
     private byte[] genFirstMessage(){
-        // definição do tamanho da mensagem
+        // definiÃ§Ã£o do tamanho da mensagem
         byte[] ret = new byte[7];
-        // atribuiçao correta dos bytes da mensagem
-        // para o exemplo, envia um número qualquer de 1 byte
+        
+        // atribuiÃ§Ã£o correta dos bytes da mensagem
+        // para o exemplo, envia um nï¿½mero qualquer de 1 byte
         // valor deve ser definido em setMessage()
         
         //ret[0] = (byte)this.valor;
@@ -152,13 +172,13 @@ public class ProtocoloSmss extends ProtocolModel {
     }
     
     private byte[] genSecondMessage(){
-        // definição do tamanho da mensagem
+        // definiï¿½ï¿½o do tamanho da mensagem
         byte[] ret = new byte[17];
         int erro;
         
         /* [ALTERADO][COMPLETAR]
          * Aqui precisamos responder pro cliente informando ou a chave de seguranca, ou  o codigo de erro.
-         * Voce precisa ver qual criterio de criptografia vai querer aceitar, abaixo faço uma checagem
+         * Voce precisa ver qual criterio de criptografia vai querer aceitar, abaixo faï¿½o uma checagem
          * bem basica.
          * 
          * Voce tambem precisa gerar o IV  enfiar no vetor de mesmo nome:
@@ -173,11 +193,11 @@ public class ProtocoloSmss extends ProtocolModel {
         	erro = 1;
         }
         
-        // atualização dos parametros internos do protocol
+        // atualizaï¿½ï¿½o dos parametros internos do protocol
         this.valor = this.valor+1;
-        // atribuiçao correta dos bytes da mensagem
+        // atribuiï¿½ao correta dos bytes da mensagem
         // para o exemplo, envia o incremento do valor recebido e
-        // atualizado na verificação
+        // atualizado na verificaï¿½ï¿½o
         
         // monto o array de retorno parConf:
         ret[0] =  (byte) ((this.step << 4 ) | (erro));
@@ -223,9 +243,9 @@ public class ProtocoloSmss extends ProtocolModel {
 			e.printStackTrace();
 		}
         
-        // começar o prenchimento da mensagem "Dados":
+        // comeï¿½ar o prenchimento da mensagem "Dados":
     	
-        // definição do tamanho da mensagem
+        // definiï¿½ï¿½o do tamanho da mensagem
         byte[] ret = new byte[3 + tamanhoTexto];
         
         // codigo de erro zero e tipo da mensagem no primeiro byte:
@@ -266,13 +286,13 @@ public class ProtocoloSmss extends ProtocolModel {
     	}
     		
  	/** codigo yeda **
-    	// definição do tamanho da mensagem
+    	// definiï¿½ï¿½o do tamanho da mensagem
         byte[] ret = new byte[2];
-        // atualização dos parametros internos do protocol
+        // atualizaï¿½ï¿½o dos parametros internos do protocol
         this.valor = this.valor+1;
-        // atribuiçao correta dos bytes da mensagem
+        // atribuiï¿½ao correta dos bytes da mensagem
         // para o exemplo, envia o incremento do valor recebido e
-        // atualizado na verificação
+        // atualizado na verificaï¿½ï¿½o
         ret[0] = (byte)this.valor ;
         ret[1] = (byte)this.getErrorCode();
         **/
@@ -280,61 +300,82 @@ public class ProtocoloSmss extends ProtocolModel {
     }
     
     private boolean verifyFirstMessage(byte[] msg){
-    	
-    	// VALIDAR OS PARAMETROS DE CRIPTOGRAFIA:
     	this.algoritmo = ( msg[5] >> 4);
     	this.padding = (msg[5] & 15);
     	this.tipo = 1;
     	this.modo = (int) msg[6];
-    	System.out.println("[Par_req] algoritmo: " + this.algoritmo + ", padding: " + this.padding + ", tipo: " 
-    						+ this.tipo + " , modo: " + this.modo);
+    	//System.out.println("verifyFirstMessage :::::::: validateParams");
     	
-        // 1a mensagem sempre correta
-        boolean ret = true;
-        // atualização do status do protocolo, para o caso de enviar mensagem de erro
-        this.errorMsg = false;
-        // atualiza o estado das informações recebidas
-        this.valor = (int)msg[0];
-        this.tipo = (int)msg[0];
-        
-        return ret;
+    	if (this.validateParams()) {
+	    	System.out.println("[Par_req] algoritmo: " + this.algoritmo + ", padding: " + this.padding + ", tipo: " 
+	    						+ this.tipo + " , modo: " + this.modo);
+	    	
+	        // atualizaï¿½ï¿½o do status do protocolo, para o caso de enviar mensagem de erro
+	        this.errorMsg = false;
+	        // atualiza o estado das informaï¿½ï¿½es recebidas
+	        this.valor = (int)msg[0];
+	        this.tipo = (int)msg[0];
+	        
+	        return true;
+    	}
+    	else {
+    		this.setErrorCode(1);
+    		return false;
+    	}
     }
 
     private boolean verifySecondMessage(byte[] msg){
         
     	int i,j;
-		byte[] initializationArray = new byte[16];
+		//byte[] initializationArray = new byte[16];
     	
     	// mensagem, provavelmente, correta
         boolean ret = true;
         this.errorMsg = false;
         
-        // decompões mensagem nos parâmetros do protocolo para validação
+        // decompÃµe mensagem nos parÃ¢metros do protocolo para validaÃ§Ã£o
         int tipo = (int) (msg[0] >> 4);
         int erro = (msg[0] & 15);
         
-        System.out.print("[Par_conf] Tipo: " + tipo + ", Erro: " + erro );
 
-        // analisa se mensagem recebido é valida, ou seja, possui a estrutura
-        // esperada para o protocolo, é integra, etc.
+        // analisa se mensagem recebido Ã© valida, ou seja, possui a estrutura
+        // esperada para o protocolo, Ã© integra, etc.
         if( erro != 0) {
+        	System.out.println("[Par_conf] Tipo: " + tipo + ", Erro: " + erro );
+        	
         	this.errorMsg = true;
         	ret = false;
         	this.setErrorCode(1);
-        } else {
-        	this.tipo = tipo;
-        	
-        	j = 1;
-    		for(i = 0; i < 16; i++) {
-    			initializationArray[i] = msg[j];
-    			j++;
-    		}
-    		
-    		this.initializationArray = util.byteToString(initializationArray);
-    		System.out.println(", IV: " + this.initializationArray);
         }
-
-        return ret;
+        else {
+	        this.tipo = tipo;
+	    	
+	    	/*j = 1;
+			for(i = 0; i < 16; i++) {
+				initializationArray[i] = msg[j];
+				j++;
+			}*/
+	        
+	        byte[] initializationArray = new byte[16];
+	        
+			SecureRandom srandom = new SecureRandom();
+			srandom.nextBytes(initializationArray);
+			
+			//IvParameterSpec ivspec = new IvParameterSpec(initializationArray);
+			
+			System.arraycopy(initializationArray, 0, msg, 1, 16);
+		
+			
+			//System.out.println("ivspec ::::::::::::::::: " + Arrays.toString(initializationArray));
+			
+			this.initializationArray = initializationArray;
+		
+			
+			//this.initializationArray = util.byteToString(ivspec);
+			System.out.println("[Par_conf] Tipo: " + tipo + ", Erro: " + this.errorCode + ", IV: " + Arrays.toString(this.initializationArray));
+        }
+		
+		return ret;
     }
     
     private boolean verifyThirdMessage(byte[] msg){
@@ -350,25 +391,31 @@ public class ProtocoloSmss extends ProtocolModel {
     	
     	String mensagemCriptografada = util.byteToString(bytesMensagemCriptografada);
     	
-    	// recebo a mensagem criptografada do cliente:
     	System.out.println("[Dados] mensagem criptografada: " + mensagemCriptografada);
+        
+        this.encrypt(bytesMensagemCriptografada);
+        
+        //String mensagemCriptografada = 
     	
-    	this.setMensagemCriptografada(mensagemCriptografada);
+    	// recebo a mensagem criptografada do cliente:
+    	//System.out.println("[Dados] mensagem criptografada: " + mensagemCriptografada);
+    	
+    	//this.setMensagemCriptografada(mensagemCriptografada);
     	
     	return true;
     	/** codigo yeda **
     	// mensagem, provavelmente, correta
         boolean ret = true;
         byte [] bStr;
-        // decompões mensagem nos parâmetros do protocolo para validação
+        // decompï¿½es mensagem nos parï¿½metros do protocolo para validaï¿½ï¿½o
         int recebido = (int)msg[0];
         int len = (int)msg[1];
         
         this.errorMsg = false;
         
         
-        // analisa se mensagem recebido é valida, ou seja, possui a estrutura
-        // esperada para o protocolo, é integra, etc.
+        // analisa se mensagem recebido ï¿½ valida, ou seja, possui a estrutura
+        // esperada para o protocolo, ï¿½ integra, etc.
         // para o exemplo, se corresponde ao incremento do valor enviado
         if (recebido == (this.valor+1)) {
             this.valor = recebido;
@@ -378,14 +425,14 @@ public class ProtocoloSmss extends ProtocolModel {
                 this.texto = new String(bStr);
             } else {
                 this.errorMsg = true;
-                // atribuir o código de erro para retorno, se existir
+                // atribuir o cï¿½digo de erro para retorno, se existir
                 this.setErrorCode(2);
                 ret = false;
             }
         } else {
             this.errorMsg = true;
             ret = false;
-            // atribuir o código de erro para retorno, se existir
+            // atribuir o cï¿½digo de erro para retorno, se existir
             this.setErrorCode(1);
         }
         return ret;
@@ -408,18 +455,18 @@ public class ProtocoloSmss extends ProtocolModel {
     	// mensagem, provavelmente, correta
         this.errorMsg = false;
         
-        // decompões mensagem nos parâmetros do protocolo para validação
+        // decompï¿½es mensagem nos parï¿½metros do protocolo para validaï¿½ï¿½o
         int recebido = (int)msg[0];
         
-        // analisa se mensagem recebido é valida, ou seja, possui a estrutura
-        // esperada para o protocolo, é integra, etc.
+        // analisa se mensagem recebido ï¿½ valida, ou seja, possui a estrutura
+        // esperada para o protocolo, ï¿½ integra, etc.
         // para o exemplo, se corresponde ao incremento do valor enviado
         if (recebido == (this.valor+1)) {
             this.valor = recebido;
         } else {
             this.errorMsg = true;
             ret = false;
-            // atribuir o código de erro para retorno, se existir
+            // atribuir o cï¿½digo de erro para retorno, se existir
             this.setErrorCode((int)msg[1]);
         }
         **/
@@ -427,14 +474,14 @@ public class ProtocoloSmss extends ProtocolModel {
     }
     
     /**
-     * Este método informa ao RunProtocol o tamanho do cabeçalho
+     * Este mï¿½todo informa ao RunProtocol o tamanho do cabeï¿½alho
      * para leitura
      * @return 
      */
     public int getHeaderLenght() {
         int ret = 0;
         // Precisa reconhecer o tipo da mensagem e saber o tamanho
-        // do cabeçalho e payload para leitura pelo RunProtocol
+        // do cabeï¿½alho e payload para leitura pelo RunProtocol
         //System.out.println("STEP: " + this.getStep());
         switch (this.getStep()) {
             case 0: ret = 1;break;
@@ -447,15 +494,15 @@ public class ProtocoloSmss extends ProtocolModel {
     }
 
     /**
-     * Este método informa ao RunProtocol o tamanho do payload
-     * Em mensagens de tamanho variável esta informação está no cabeçalho
+     * Este mï¿½todo informa ao RunProtocol o tamanho do payload
+     * Em mensagens de tamanho variï¿½vel esta informaï¿½ï¿½o estï¿½ no cabeï¿½alho
      * @param header
      * @return 
      */
     public int getPayloadLenght(byte[] header) {
         int ret = 0;
         // precisa reconhecer o tipo da mensagem e saber o tamanho
-        // do cabeçalho e payload 
+        // do cabeï¿½alho e payload 
         
         switch (this.getStep()) {
             case 0: ret = 6;break;
@@ -473,7 +520,7 @@ public class ProtocoloSmss extends ProtocolModel {
     }
     
     /**
-     * Este método é específico deste exemplo
+     * Este mï¿½todo ï¿½ especï¿½fico deste exemplo
      * @param vlr 
      */
     public void setValor(int vlr){
@@ -509,4 +556,113 @@ public class ProtocoloSmss extends ProtocolModel {
             this.modo = modo;
         }
     }
+    
+    public void setErrorCode(int error) {
+    	this.errorCode = error;
+    }
+
+    // --------------------------------------
+    // CRIPTOGRAFIA
+    // --------------------------------------
+
+    public static final HashMap<Integer, String> algMap = new HashMap<Integer, String>();
+	{
+		algMap.put(0, "AES128"); // AES com chave de 128 bits
+		algMap.put(1, "AES192"); // AES com chave de 192 bits
+		algMap.put(2, "AES256"); // AES com chave de 256 bits
+		algMap.put(3, "DES"); // DES
+		algMap.put(4, "3DES-EDE2"); // Triple-DES no modo EDE com duas chaves
+		algMap.put(5, "3DES-EDE3"); // Triple-DES no modo EDE com trÃªs chaves
+	};
+	public static final HashMap<Integer, String> modeMap = new HashMap<Integer, String>();
+	{
+		modeMap.put(0, "ECB"); // Electronic Codebook Book
+		modeMap.put(1, "CBC"); // Cipher Block Chaining
+		modeMap.put(2, "CFB1"); // Cipher FeedBack com deslocamento de 1 bit (S)
+		modeMap.put(3, "CFB8"); // Cipher FeedBack com deslocamento de 1 byte (S)
+		modeMap.put(4, "CFB64"); // Cipher FeedBack com deslocamento de 8 bytes (S)
+		modeMap.put(5, "CFB128"); // Cipher FeedBack com deslocamento de 16 bytes (S)
+		modeMap.put(6, "CTR"); // Counter
+	};
+	public static final HashMap<Integer, String> padMap = new HashMap<Integer, String>();
+	{
+		padMap.put(0, "NoPadding"); // Sem preenchimento
+		padMap.put(1, "PKCS5Padding"); // Preenchimento no padrÃ£o PKCS5
+	};
+	
+	// verifica se suporta os parÃ¢metros
+	public boolean validateParams() {
+		if (!algMap.containsKey(this.algoritmo)) {
+			//System.out.println("validateParams :::::::: alg false");
+			return false;
+		}
+		if (!modeMap.containsKey(this.modo)) {
+			//System.out.println("validateParams :::::::: mode false");
+			return false;
+		}
+		if (!padMap.containsKey(this.padding)) {
+			//System.out.println("validateParams :::::::: pad false");
+			return false;
+		}
+		
+		//System.out.println("validateParams :::::::: true");
+		
+		return true;
+	}
+
+	public String cryptoInstance() {
+		String ret;
+
+		/*ret = algMap.get(new Integer(this.algoritmo)) + "/" + modeMap.get(new Integer(this.modo)) + "/"
+				+ padMap.get(new Integer(this.padding));*/
+		
+		ret = "AES/" + modeMap.get(new Integer(this.modo)) + "/"
+				+ padMap.get(new Integer(this.padding));
+		return ret;
+	}
+	
+	public void encrypt(byte[] msg) {
+		byte[] initializationArray = new byte[16];
+        
+		SecureRandom srandom = new SecureRandom();
+		srandom.nextBytes(initializationArray);
+		
+		IvParameterSpec ivspec = new IvParameterSpec(initializationArray);
+		
+		try {
+			KeyGenerator kgen = KeyGenerator.getInstance("AES");
+			SecretKey skey = kgen.generateKey();
+			SecretKeySpec skeyspec = new SecretKeySpec(skey.getEncoded(), "AES");
+			
+			Cipher ci = Cipher.getInstance(this.cryptoInstance());
+			ci.init(Cipher.ENCRYPT_MODE, skeyspec, ivspec);
+			
+			this.cipher = ci;
+			
+			//String msg = "testando";
+			
+			//System.out.println("Mensagem normal: " + msg);
+			
+			//byte[] input = msg.getBytes("UTF-8");
+			byte[] encoded = ci.doFinal(msg);
+			
+			System.out.println("Mensagem criptografa: " + encoded);
+			
+			this.decrypt(encoded);
+			
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void decrypt(byte[] encoded) {
+		//byte[] encoded = Files.readAllBytes(Paths.get(inFile));
+		try {
+			String plainText = new String(this.cipher.doFinal(encoded), "UTF-8");
+			
+			System.out.println("Mensagem descriptografa: " + plainText);
+		} catch (UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
+			e.printStackTrace();
+		}
+	}
 }
