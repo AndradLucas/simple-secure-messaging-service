@@ -102,6 +102,7 @@ public class Util {
         
         //Converting string to character array
         char ch[] = str.toCharArray();
+        
         for(int i = 0; i < ch.length; i++) {
            String hexString = Integer.toHexString(ch[i]);
            sb.append(hexString);

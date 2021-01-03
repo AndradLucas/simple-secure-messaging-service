@@ -16,6 +16,7 @@ import java.util.ArrayList;
  */
 public class ServerExemplo {
     public static void main(String[] args){
+    	int a;
         // Instancia protocolo no modo servidor
         ProtocoloSmss prot = new ProtocoloSmss(ProtocoloSmss.SERVER);
         // Referencia para socket TCP
