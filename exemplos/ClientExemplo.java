@@ -5,6 +5,7 @@
 
 package exemplos;
 
+import java.util.Scanner;
 import protocols.RunProtocol;
 import protocols.SecureSuite;
 import java.net.Socket;
@@ -23,17 +24,22 @@ public class ClientExemplo {
         RunProtocol run = null;
         
         // entradas algoritmo:
-        int origem = 43563;
+        int origem = 43542;
         int destino = 43563;
         
-        /* ALGORITMO: AES128 - C�DIGO 0 */
+        Scanner scan = new Scanner(System.in);
+        
+        /* ALGORITMO: AES128 - CÓDIGO 0 */
     	byte algoritmo = 0;
     	
-    	/* PADDING: NO PADDING - C�DIGO 0 */
+    	/* PADDING: NO PADDING - CÓDIGO 0 */
     	byte padding = 0;
     	
     	/* MODO: CFB128 - C�DIGO 5 */
     	int modo = 5;
+    	
+    	//System.out.println("Código do algoritmo"); 
+    	//algoritmo = scan.nextLine();   
         
     	try {
             sk = new Socket("localhost", 50000);

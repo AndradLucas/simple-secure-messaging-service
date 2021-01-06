@@ -96,7 +96,7 @@ public class Util {
         return sb.toString();
     }
 
-    public String stringToHexString(String str) {
+    public static String stringToHexString(String str) {
 
         StringBuffer sb = new StringBuffer();
         
@@ -108,7 +108,7 @@ public class Util {
            sb.append(hexString);
         }
         String result = sb.toString();
-        //System.out.println(result);
+        
         return result;
      }
     
