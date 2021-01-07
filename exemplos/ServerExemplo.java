@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package exemplos;
 
 import protocols.RunProtocol;
@@ -11,8 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- * Servidor simples, apenas 1 conex�o atrav�s do ProtocoloExemplo
- * @author yeda
+ * Servidor simples, apenas 1 conexão através do ProtocoloExemplo
  */
 public class ServerExemplo {
     public static void main(String[] args){
@@ -26,10 +20,10 @@ public class ServerExemplo {
         RunProtocol run = null;
         
         try {
-            // Cria socket servidor, que escuta requisi��o de conex�o
+            // Cria socket servidor, que escuta requisição de conexão
             ssk = new ServerSocket(50000);
             System.out.println("Aguardando conexao");
-            // Aguarda requisi��o de conex�o
+            // Aguarda requisição de conexão
             sk = ssk.accept();
             System.out.println("Conexao aceita");
             run = new RunProtocol(sk);

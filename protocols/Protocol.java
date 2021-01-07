@@ -1,9 +1,3 @@
-/*
- * Protocol.java
- *
- * Created on 27 de Janeiro de 2005, 22:58
- */
-
 package protocols;
 
 /**
@@ -28,7 +22,6 @@ package protocols;
  *     }
  * }
  * </PRE>
- * @author Yeda Regina Venturini
  * @see ProtocolModel
  */
 

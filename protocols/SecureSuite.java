@@ -1,16 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package protocols;
 
 import java.util.HashMap;
 
-/**
- *
- * @author yeda
- */
 public class SecureSuite {
 	private int alg;
 	private int mode;

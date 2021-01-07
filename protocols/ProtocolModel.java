@@ -1,9 +1,3 @@
-/*
- * ProtocolModel.java
- *
- * Created on 28 de Janeiro de 2005, 11:09
- */
-
 package protocols;
 
 import util.Util;
@@ -33,7 +27,6 @@ import java.util.ArrayList;
  *     }
  * }
  * </PRE>
- * @author  Yeda Regina Venturini
  */
 public abstract class ProtocolModel implements Protocol {
     /** The mode the protocol must run, CLIENT or SERVER. */

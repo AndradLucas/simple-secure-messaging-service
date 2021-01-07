@@ -1,7 +1,5 @@
 /**
  * This class was downloaded by the Internet
- * 
- * @author 
  */
 package util;
 

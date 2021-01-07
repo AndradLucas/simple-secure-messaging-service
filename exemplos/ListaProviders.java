@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package exemplos;
 
 import java.security.Provider;
@@ -9,10 +5,6 @@ import java.security.Security;
 import java.util.Enumeration;
 import java.util.Set;
 
-/**
- *
- * @author yeda
- */
 public class ListaProviders {
     
     public static void main(String[] args) {

@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package protocols;
 
 import util.Util;
@@ -13,10 +8,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-/**
+/*
  * This class execute protocols defined using Protocol interface in a socket.
- *  
- * @author Yeda Regina Venturini
  */
 public class RunProtocol {
     private Socket skt;

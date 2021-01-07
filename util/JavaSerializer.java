@@ -1,16 +1,9 @@
-/*
- * JavaSerializer.java
- *
- * Created on 19 de Janeiro de 2005, 14:06
- */
-
 package util;
 
 import java.io.*;
 
-/** This class use the Java object serialization to save and recover the seirializable objects form/of files.
- *
- * @author Yeda Regina Venturini
+/*
+ * This class use the Java object serialization to save and recover the seirializable objects form/of files.
  */
 public class JavaSerializer {
     /** Serialized object . */
